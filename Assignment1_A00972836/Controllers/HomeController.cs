@@ -86,10 +86,11 @@ namespace Assignment1_A00972836.Controllers
             foreach (Region region in regionList)
             {
 
-                //var regionOld = ctx.Regions.FirstOrDefault(c => c.RegionID == region.RegionID);
-                //ctx.Regions.Attach(ctx.Regions.FirstOrDefault(c => c.RegionID == region.RegionID));
-                if(region.RegionID != 0 && region.RegionID > 10)
-                ctx.Entry(region).State = EntityState.Modified;
+                Region regionOld = ctx.Regions.FirstOrDefault(c => c.RegionID == region.RegionID);
+                if(regionOld.RegionDescription.Trim() != region.RegionDescription.Trim())
+                {
+                    regionOld.RegionDescription = region.RegionDescription.Trim();
+                }
              }
             ctx.SaveChanges();
         }
