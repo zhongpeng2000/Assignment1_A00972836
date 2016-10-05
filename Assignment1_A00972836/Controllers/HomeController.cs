@@ -20,44 +20,69 @@ namespace Assignment1_A00972836.Controllers
             //NorthwindEntities ctx = new NorthwindEntities();
             //DbSet<Region> regions = ctx.Regions;
             IEnumerable<Region> regionList = (from c in ctx.Regions select c);
+            foreach (Region item in regionList)
+            {
+                item.RegionDescription = item.RegionDescription.Trim();
+            }
+            if (TempData["errorMessage"] != null){ 
+            ViewBag.ErrorMsg = TempData["errorMessage"].ToString();
+        }
             return View("Index", RegionView.init(regionList));
             
         }
         [HttpPost]
         public ActionResult IndexPost(IEnumerable<RegionView> model, string submitValue,string newRegion)
         {
-            IEnumerable<RegionView> modelDel;
-            switch (submitValue)
+
+            if (ModelState.IsValid)
             {
-                case "Add":
-                    Add(newRegion);
-                    break;
-                case "Delete":
-                    modelDel = model.Where(m => m.isChecked == true);
-                    IList<Region> regionListDel = new List<Region>();
-                    foreach(RegionView item in modelDel)
-                    {
-                        regionListDel.Add(item.region);
-                    }
-                    Delete(regionListDel);
-                    break;
-                case "Edit":
-                    IList<Region> regionListEdit = new List<Region>();
-                    foreach (RegionView item in model)
-                    {
-                        regionListEdit.Add(item.region);
-                    }
-                    Edit(regionListEdit);
-                    break;
-                default:
-                    //Console.WriteLine("Default case");
-                    break;
+                IEnumerable<RegionView> modelDel;
+                switch (submitValue)
+                {
+                    case "Add":
+                        Add(newRegion);
+                        break;
+                    case "Delete":
+                        modelDel = model.Where(m => m.isChecked == true);
+                        IList<Region> regionListDel = new List<Region>();
+                        foreach (RegionView item in modelDel)
+                        {
+                            regionListDel.Add(item.region);
+                        }
+                        Delete(regionListDel);
+                        break;
+                    case "Edit":
+                        IList<Region> regionListEdit = new List<Region>();
+                        foreach (RegionView item in model)
+                        {
+                            regionListEdit.Add(item.region);
+                        }
+                        Edit(regionListEdit);
+                        break;
+                    default:
+                        //Console.WriteLine("Default case");
+                        break;
+                }
+            }
+            else
+            {
+                var query = from state in ModelState.Values
+                            from error in state.Errors
+                            select error.ErrorMessage;
+
+                var errorList = query.ToList();
+                TempData["errorMessage"] = errorList.FirstOrDefault();
+            }
+
+            if (TempData["errorMessage"] != null)
+            {
+                ViewBag.ErrorMsg = TempData["errorMessage"].ToString();
             }
 
 
-            IEnumerable<Region> regionList = (from c in ctx.Regions select c);
+            //IEnumerable<Region> regionList = (from c in ctx.Regions select c);
 
-            return RedirectToAction("Index");
+            return View("Index", model);
         }
 
         private int Add(string newRegion)
@@ -83,16 +108,29 @@ namespace Assignment1_A00972836.Controllers
         private void Edit(IEnumerable<Region> regionList)
         {
 
-            foreach (Region region in regionList)
-            {
 
-                Region regionOld = ctx.Regions.FirstOrDefault(c => c.RegionID == region.RegionID);
-                if(regionOld.RegionDescription.Trim() != region.RegionDescription.Trim())
+
+            if (ModelState.IsValid)
+            {
+                foreach (Region region in regionList)
                 {
-                    regionOld.RegionDescription = region.RegionDescription.Trim();
+
+                    Region regionOld = ctx.Regions.FirstOrDefault(c => c.RegionID == region.RegionID);
+                    if (regionOld.RegionDescription.Trim() != region.RegionDescription.Trim())
+                    {
+                        regionOld.RegionDescription = region.RegionDescription.Trim();
+                    }
                 }
-             }
-            ctx.SaveChanges();
+                ctx.SaveChanges();
+            }
+            else
+            {
+                var query = from state in ModelState.Values
+                            from error in state.Errors
+                            select error.ErrorMessage;
+
+                var errorList = query.ToList();
+            }
         }
     }
 }
